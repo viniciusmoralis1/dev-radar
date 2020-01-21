@@ -4,16 +4,16 @@ const parseStringAsArray = require('../utils/parseStringAsArray');
 
 module.exports = {
 
-    async index(req, res){
+    async index(request, response){
         const devs = await Dev.find();
 
-        return res.json(devs);
+        return response.json(devs);
     },
 
     async store(request, response) {
         const {github_username, techs, latitude, longitude} = request.body;
     
-        const dev = await Dev.findOne({ github_username });
+        let dev = await Dev.findOne({ github_username });
 
         if(!dev){
             const apiRes = await axios.get(`https://api.github.com/users/${github_username}`);
@@ -26,9 +26,7 @@ module.exports = {
             const location = {
                 type: 'Point',
                 coordinates: [longitude, latitude],
-            };
-        
-            console.log(location);
+            }
         
             dev = await Dev.create({
                 github_username, 
@@ -41,6 +39,16 @@ module.exports = {
         }
 
         return response.json(dev);
-    
+    },
+
+    async update(request, response){
+        const {github_username, longitude, latitude, name, techs} = request.body;
+
+        await Dev.findOneAndUpdate({ github_username }, 
+            { name: name, techs: parseStringAsArray(techs), location: { type: 'Point', coordinates: [longitude, latitude] }}, 
+            { useFindAndModify: false }
+        );
+
+        return response.json({message: 'Atualizado com sucesso!'});
     }
 }
