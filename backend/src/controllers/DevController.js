@@ -50,5 +50,13 @@ module.exports = {
         );
 
         return response.json({message: 'Atualizado com sucesso!'});
+    },
+
+    async destroy(request, response){
+        const {github_username} = request.body;
+
+        await Dev.findOneAndDelete({ github_username });
+
+        return response.json({message: 'Removido com sucesso!'});
     }
 }
