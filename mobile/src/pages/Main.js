@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity, Keyboard } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';    
+import MapView, { Marker, Callout } from 'react-native-maps';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import api from '../services/api';
+import { connect, disconnect } from '../services/socket';
 
 function Main({ navigation }){
-    const [currentRegion, setCurrentRegion] = useState(null); 
+    const [currentRegion, setCurrentRegion] = useState(null);
     const [devs, setDevs] = useState([]);
     const [techs, setTechs] = useState('');
-    
+
     useEffect(() => {
         async function loadInitialPosition(){
             const { granted } = await requestPermissionsAsync();
@@ -19,7 +20,7 @@ function Main({ navigation }){
                     enableHighAccuracy: true,
                 });
                 const { latitude, longitude } = coords;
-            
+
                 setCurrentRegion({
                     latitude,
                     longitude,
@@ -30,6 +31,10 @@ function Main({ navigation }){
         }
         loadInitialPosition();
     }, []);
+
+    function setupWebSocket(){
+      connect();
+    }
 
     async function loadDevs(){
         const { latitude, longitude } = currentRegion;
@@ -42,6 +47,7 @@ function Main({ navigation }){
         });
 
         setDevs(response.data.devs);
+        setupWebSocket();
     }
 
     function handleRegionChanged(region){
@@ -64,22 +70,22 @@ function Main({ navigation }){
                         <View style={styles.callout}>
                             <Text style={styles.devName}>{dev.name}</Text>
                             <Text style={styles.devBio}>{dev.bio}</Text>
-                            <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text> 
+                            <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text>
                         </View>
                     </Callout>
-                
+
                 </Marker>
                 ))}
             </MapView>
             <View style={styles.searchForm} >
-                <TextInput style={styles.searchInput} placeholder="Buscar devs por techs..." 
+                <TextInput style={styles.searchInput} placeholder="Buscar devs por techs..."
                            placeholderTextColor="#999" autoCapitalize="words" autoCorrect={false}
                            value={techs} onChangeText={setTechs} />
                 <TouchableOpacity onPress={loadDevs} style={styles.loadButton}>
                     <MaterialIcons name='my-location' size={20} color="#FFF" />
                 </TouchableOpacity>
             </View>
-        </>    
+        </>
     );
 }
 
@@ -130,12 +136,12 @@ const styles = StyleSheet.create({
         shadowOffset: {
             width: 3,
             height: 3
-        }, 
+        },
     },
     loadButton: {
         width: 50,
         height: 50,
-        backgroundColor: "#F965A5",
+        backgroundColor: "#FF8F8A",
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',

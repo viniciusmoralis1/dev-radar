@@ -1,6 +1,6 @@
 const socketio = require('socket.io');
 
-exports.setWebSocket = (server) => {
+exports.setupWebSocket = (server) => {
     const io = socketio(server);
 
     io.on('connection', socket => {
